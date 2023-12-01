@@ -40,7 +40,7 @@ t_up = 0:Ts:((NT-1)*Ts);
 %% TARGET'S ECHOES GENERATION
 
 d = 100;
-v = 15;
+v = 0;
 [y_target,x] = echoSingleTarget(d,v,fc,fs,B,NT,NTsw,M);
 sin_t = (x - conj(x))/(1i*2);
 
@@ -66,21 +66,13 @@ load_point_flag = 0;
 if load_point_flag == 1
     load('point.mat');
 else
-    numofpoint = 102; % must be even
+    numofpoint = 32; % must be even
     fci_flag = 0;
-    Bi_flag = 1;
+    Bi_flag = 0;
     Mi_flag = 0;
     Ti_flag = 0;
     Tswi_flag = 0;
-    offset_flag = 0;
-
-    if Bi_flag ~= 0
-        Bi = linspace(0,B,numofpoint/2);
-        Bi(end) = [];
-        Bi = [Bi linspace(B,B*2,numofpoint/2)];
-    else
-        Bi = ones(1,numofpoint-1)*B;
-    end
+    offset_flag = 1;
 
     if fci_flag ~= 0
         fci = linspace(fc-B,fc,numofpoint/2);
@@ -88,6 +80,14 @@ else
         fci = [fci linspace(fc,fc+B,numofpoint/2)];
     else
         fci = ones(1,numofpoint-1)*fc;
+    end
+
+    if Bi_flag ~= 0
+        Bi = linspace(0,B,numofpoint/2);
+        Bi(end) = [];
+        Bi = [Bi linspace(B,B*2,numofpoint/2)];
+    else
+        Bi = ones(1,numofpoint-1)*B;
     end
 
     if Mi_flag ~= 0
@@ -99,7 +99,7 @@ else
     end
 
     if Ti_flag ~= 0
-        Ti = linspace(Ts,NT*Ts,numofpoint/2);
+        Ti = linspace(NT*Ts/10,NT*Ts,numofpoint/2);
         Ti(end) = [];
         Ti = [Ti linspace(NT*Ts,NT*Ts*2,numofpoint/2)];
     else
@@ -127,8 +127,8 @@ end
 %% INTERFERENCE GENERATION
 
 n = 1;
-di = 100;
-vi = 20;
+di = 0;
+vi = 0;
 
 R = zeros(numofpoint-1,1);
 SIRdB = zeros(numofpoint-1,1);
@@ -136,12 +136,12 @@ SIRdB = zeros(numofpoint-1,1);
 for k = 1:(numofpoint-1)
     disp('Iterazione ')
     disp(k)
-    [yi,xi] = echoInterferenceFMCW(x,n,di,vi,fc,fci(k),fs,B,Bi(k),NT,NTsw,Ti(k),Tswi(k),M,Mi(k),offset(k));
+    [yi,xi] = echoInterferenceFMCW(x,Pt,n,di,vi,fc,fci(k),fs,B,Bi(k),NT,NTsw,Ti(k),Tswi(k),M,Mi(k),offset(k));
     % [yi,xi] = echoInterferenceFMCW(x,n,di,vi,fc,fc,fs,B,B,NT,NTsw,NT*Ts,NTsw*Ts,M,M,offset(k));
     y_i_noise = yi + noise;
     y_tf_ts = y_target + yi + noise;
     sin_i = (xi - conj(xi))/(1i*2);
-    R(k) = max(xcorr(sin_t,sin_i,'normalized'),[],'all');
+    R(k) = xcorr(sin_t,sin_i,'normalized',0);
     % R(k) = max(abs(xcorr(x,xi,'normalized')),[],'all');
     if isnan(R(k))
         R(k) = 0;
@@ -158,13 +158,13 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,fci/fc,R)
+        plot(ax1,fci/fc,R,'--o')
         title(ax1,'Carrier frequency ratio - Correlation')
         ax1.FontSize = 14;
         ax1.XColor = 'blue';
 
         ax2 = nexttile;
-        plot(fci/fc,SIRdB)
+        plot(fci/fc,SIRdB,'--o')
         title(ax2,'Carrier frequency ratio - SIR')
         ax2.FontSize = 14;
         ax2.XColor = 'blue';
@@ -175,13 +175,13 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Bi/B,R)
+        plot(ax1,Bi/B,R,'--o')
         title(ax1,'Band ratio - Correlation')
         ax1.FontSize = 14;
         ax1.XColor = 'blue';
 
         ax2 = nexttile;
-        plot(ax2,Bi/B,SIRdB)
+        plot(ax2,Bi/B,SIRdB,'--o')
         title(ax2,'Band ratio - SIR')
         ax2.FontSize = 14;
         ax2.XColor = 'blue';
@@ -192,13 +192,13 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Mi,R)
+        plot(ax1,Mi,R,'--o')
         title(ax1,'N. of ramp - Correlation')
         ax1.FontSize = 14;
         ax1.XColor = 'blue';
 
         ax2 = nexttile;
-        plot(ax2,Mi,SIRdB)
+        plot(ax2,Mi,SIRdB,'--o')
         title(ax2,'N. of ramp - SIR')
         ax2.FontSize = 14;
         ax2.XColor = 'blue';
@@ -209,13 +209,13 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Ti/(NT*Ts),R)
+        plot(ax1,Ti/(NT*Ts),R,'--o')
         title(ax1,'Time of up ramp ratio - Correlation')
         ax1.FontSize = 14;
         ax1.XColor = 'blue';
 
         ax2 = nexttile;
-        plot(ax2,Ti/(NT*Ts),SIRdB)
+        plot(ax2,Ti/(NT*Ts),SIRdB,'--o')
         title(ax2,'Time of up ramp ratio - SIR')
         ax2.FontSize = 14;
         ax2.XColor = 'blue';
@@ -226,13 +226,13 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Tswi,R)
+        plot(ax1,Tswi,R,'--o')
         title(ax1,'Time beetween foolowing ramps - Correlation')
         ax1.FontSize = 14;
         ax1.XColor = 'blue';
 
         ax2 = nexttile;
-        plot(ax2,Tswi,SIRdB)
+        plot(ax2,Tswi,SIRdB,'--o')
         title(ax2,'Time beetween foolowing ramps - SIR')
         ax2.FontSize = 14;
         ax2.XColor = 'blue';
@@ -243,20 +243,20 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,offset,R)
+        plot(ax1,offset,R,'--o')
         title(ax1,'Offset - Correlation')
         ax1.FontSize = 14;
         ax1.XColor = 'blue';
 
         ax2 = nexttile;
-        plot(ax2,offset,SIRdB)
+        plot(ax2,offset,SIRdB,'--o')
         title(ax2,'Offset - SIR')
         ax2.FontSize = 14;
         ax2.XColor = 'blue';
     end
 
     figure
-    plot(R(ceil(end/2):end),SIRdB(ceil(end/2):end))
+    plot(R(ceil(end/2):end),SIRdB(ceil(end/2):end),'--o')
     title('Correlation - SIR')
     p.FontSize = 14;
     p.XColor = 'blue';
