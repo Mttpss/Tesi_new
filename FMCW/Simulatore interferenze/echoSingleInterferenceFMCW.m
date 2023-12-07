@@ -60,9 +60,9 @@ for l = 1:Mi
     y_prefilter(NTi+1:NTswi,l) = zeros(NTswi-NTi,1);
 end
 a = sqrt((Pt/(sum(y_prefilter.*conj(y_prefilter),"all"))));
-y_prefilter = a*y_prefilter;
-SNI_prefilter_db = 10*log10(Pt/(sum(y_prefilter.*conj(y_prefilter),"all")));
-disp(SNI_prefilter_db)
+% y_prefilter = a*y_prefilter;
+% SNI_prefilter_db = 10*log10(Pt/(sum(y_prefilter.*conj(y_prefilter),"all")));
+% disp(SNI_prefilter_db)
 
 y_filtered = zeros(NTswi,Mi);
 if ((fci - mi*d/c - fci*v/c - mi*v*(Mi-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(end)))>=fc || (fci - mi*d/c - fci*v/c)<=fc+B
@@ -80,8 +80,8 @@ if ((fci - mi*d/c - fci*v/c - mi*v*(Mi-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(
     end
 end
 y_filtered = a*y_filtered;
-SNI_filtered_db = 10*log10(Pt/(sum(y_filtered.*conj(y_filtered),"all")));
-disp(SNI_filtered_db)
+% SNI_filtered_db = 10*log10(Pt/(sum(y_filtered.*conj(y_filtered),"all")));
+% disp(SNI_filtered_db)
 y_filtered = reshape(y_filtered,NTswi*Mi,1);
 
 if offset < 0 

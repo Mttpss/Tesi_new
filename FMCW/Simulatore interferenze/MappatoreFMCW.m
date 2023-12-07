@@ -65,13 +65,13 @@ load_point_flag = 0;
 if load_point_flag == 1
     load('point.mat');
 else
-    numofpoint = 6; % must be even
+    numofpoint = 20; % must be even
     fci_flag = 0;
-    Bi_flag = 1;
+    Bi_flag = 0;
     Mi_flag = 0;
     Ti_flag = 0;
     Tswi_flag = 0;
-    offset_flag = 0;
+    offset_flag = 1;
 
     if Bi_flag ~= 0
         Bi = linspace(0,B,numofpoint/2);
@@ -136,16 +136,16 @@ SIRdB = zeros(numofpoint-1,1);
 for k = 1:(numofpoint-1)
     disp('Iterazione ')
     disp(k)
-    [yi(:,:,k),xi(:,k)] = echoInterferenceFMCW(x,n,di,vi,fc,fci(k),fs,B,Bi(k),NT,NTsw,Ti(k),Tswi(k),M,Mi(k),offset(k));
-    y_tf_ts = y_target + yi(:,:,k) + noise;
-    sin_i(:,k) = (xi(:,k) - conj(xi(:,k)))/(1i*2);
+    [yi,xi] = echoInterferenceFMCW(x,Pt,n,di,vi,fc,fci(k),fs,B,Bi(k),NT,NTsw,Ti(k),Tswi(k),M,Mi(k),offset(k));
+    y_tf_ts = y_target + yi + noise;
+    sin_i(:,k) = (xi - conj(xi))/(1i*2);
     R(k) = max(xcorr(sin_t,sin_i(:,k),'normalized'),[],'all');
     if isnan(R(k))
         R(k) = 0;
     end
-    Pi = sum(yi.*conj(yi),"all");
-    SIR(k) = Pt/(Pi + Pn);
-    SIRdB(k) = 10*log10(Pt/(Pi + Pn));
+    Pi(k) = sum(yi.*conj(yi),"all");
+    SIR(k) = Pt/(Pi(k) + Pn);
+    SIRdB(k) = 10*log10(Pt/(Pi(k) + Pn));
     y_d_v = rangeDopplerProcessing(y_tf_ts,N,M);
     v_ax = ((-M/2):(M/2))*delta_v;
     d_ax = (0:(N-1))*delta_d;
@@ -156,15 +156,17 @@ for k = 1:(numofpoint-1)
             flipud(d_ax(1:round(size(d_ax,2)/2))'),...
             flipud(20*log10(abs(y_d_v((1:round(size(d_ax,2)/2)),round(M/4):round(3*M/4))/...
             max(abs(y_d_v((1:round(size(d_ax,2)/2)),round(M/4):round(3*M/4))),[],'all')))))
-        xlabel('Velocity [m/s]')
-        ylabel('Distance [m]')
+        xlabel('Velocity [m/s]','FontSize',30)
+        ylabel('Distance [m]','FontSize',30)
         cb = colorbar;
         cb.Label.String = ('[dB]');
+        cb.FontSize = 30;
         set(gca,'YDir','normal')
         title({['SIR = ', num2str(SIRdB(k)), ' dB | Correlation = ', num2str(R(k)) ] ...
             ['Offset = ', num2str(offset(k)) ,' | fci/fc = ', num2str(fci(k)/fc), ' | Bi/B = ', num2str(Bi(k)/B)] ...
-            ['Up Ramp time ratio = ' , num2str(Ti(k)/(NT*Ts)), ' | Time beetween ramps = ' , num2str(Tswi(k)), ' s'] ...
-            ['N. of ramps in one CPI= ' , num2str(Mi(k))]}, 'FontSize', 14);
+            ['Up Ramp time ratio = ' , num2str(Ti(k)/(NT*Ts)), ' | \DeltaTi/\DeltaT = ' , num2str((Tswi(k)-Ti(k))/((NTsw-NT)*Ts))] ...
+            ['N. of ramps in one CPI= ' , num2str(Mi(k))]}, 'FontSize', 30);
+        set(gca,'fontsize',30)
     end
 
     if linear_map_flag ~= 0
@@ -173,13 +175,15 @@ for k = 1:(numofpoint-1)
             flipud(d_ax(1:round(size(d_ax,2)/2))'),...
             flipud(abs(y_d_v((1:round(size(d_ax,2)/2)),round(M/4):round(3*M/4))/...
             max(abs(y_d_v((1:round(size(d_ax,2)/2)),round(M/4):round(3*M/4))),[],'all'))))
-        xlabel('Velocity [m/s]')
-        ylabel('Distance [m]')
+        xlabel('Velocity [m/s]','FontSize',30)
+        ylabel('Distance [m]','FontSize',30)
         cb = colorbar;
+        cb.FontSize = 30;
         set(gca,'YDir','normal')
         title({['SIR = ', num2str(SIRdB(k)), ' dB | Correlation = ', num2str(R(k)) ] ...
             ['Offset = ', num2str(offset(k)) ,' | fci/fc = ', num2str(fci(k)/fc), ' | Bi/B = ', num2str(Bi(k)/B)] ...
-            ['Up Ramp time ratio = ' , num2str(Ti(k)/(NT*Ts)), ' | Time beetween ramps = ' , num2str(Tswi(k)), ' s'] ...
-            ['N. of ramps in one CPI= ' , num2str(Mi(k))]}, 'FontSize', 14);
+            ['Up Ramp time ratio = ' , num2str(Ti(k)/(NT*Ts)), ' | \DeltaTi/\DeltaT = ' , num2str((Tswi(k)-Ti(k))/((NTsw-NT)*Ts))] ...
+            ['N. of ramps in one CPI= ' , num2str(Mi(k))]}, 'FontSize', 30);
+        set(gca,'fontsize',30)
     end
 end

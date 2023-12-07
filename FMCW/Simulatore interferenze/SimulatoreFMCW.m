@@ -66,7 +66,7 @@ load_point_flag = 0;
 if load_point_flag == 1
     load('point.mat');
 else
-    numofpoint = 32; % must be even
+    numofpoint = 202; % must be even
     fci_flag = 0;
     Bi_flag = 0;
     Mi_flag = 0;
@@ -134,8 +134,8 @@ R = zeros(numofpoint-1,1);
 SIRdB = zeros(numofpoint-1,1);
 
 for k = 1:(numofpoint-1)
-    disp('Iterazione ')
-    disp(k)
+    % disp('Iterazione ')
+    % disp(k)
     [yi,xi] = echoInterferenceFMCW(x,Pt,n,di,vi,fc,fci(k),fs,B,Bi(k),NT,NTsw,Ti(k),Tswi(k),M,Mi(k),offset(k));
     % [yi,xi] = echoInterferenceFMCW(x,n,di,vi,fc,fc,fs,B,B,NT,NTsw,NT*Ts,NTsw*Ts,M,M,offset(k));
     y_i_noise = yi + noise;
@@ -146,8 +146,8 @@ for k = 1:(numofpoint-1)
     if isnan(R(k))
         R(k) = 0;
     end
-    Pi = sum(yi.*conj(yi),"all");
-    SIRdB(k) = 10*log10(Pt/(Pi + Pn));
+    Pi(k) = sum(yi.*conj(yi),"all");
+    SIRdB(k) = 10*log10(Pt/(Pi(k) + Pn));
 end
 
 %% PLOTTING VARIOUS RESULTS
@@ -158,16 +158,14 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,fci/fc,R,'--o')
+        plot(ax1,fci/fc,R,'--', 'Marker', 'o')
         title(ax1,'Carrier frequency ratio - Correlation')
-        ax1.FontSize = 14;
-        ax1.XColor = 'blue';
+        ax1.FontSize = 30;
 
         ax2 = nexttile;
-        plot(fci/fc,SIRdB,'--o')
+        plot(fci/fc,SIRdB,'--', 'Marker', 'o')
         title(ax2,'Carrier frequency ratio - SIR')
-        ax2.FontSize = 14;
-        ax2.XColor = 'blue';
+        ax2.FontSize = 30;
     end
 
     if Bi_flag ~= 0
@@ -175,16 +173,14 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Bi/B,R,'--o')
+        plot(ax1,Bi/B,R,'--', 'Marker', 'o')
         title(ax1,'Band ratio - Correlation')
-        ax1.FontSize = 14;
-        ax1.XColor = 'blue';
+        ax1.FontSize = 30;
 
         ax2 = nexttile;
-        plot(ax2,Bi/B,SIRdB,'--o')
+        plot(ax2,Bi/B,SIRdB,'--', 'Marker', 'o')
         title(ax2,'Band ratio - SIR')
-        ax2.FontSize = 14;
-        ax2.XColor = 'blue';
+        ax2.FontSize = 30;
     end
 
     if Mi_flag ~= 0
@@ -192,16 +188,14 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Mi,R,'--o')
+        plot(ax1,Mi,R,'--', 'Marker', 'o')
         title(ax1,'N. of ramp - Correlation')
-        ax1.FontSize = 14;
-        ax1.XColor = 'blue';
+        ax1.FontSize = 30;
 
         ax2 = nexttile;
-        plot(ax2,Mi,SIRdB,'--o')
+        plot(ax2,Mi,SIRdB,'--', 'Marker', 'o')
         title(ax2,'N. of ramp - SIR')
-        ax2.FontSize = 14;
-        ax2.XColor = 'blue';
+        ax2.FontSize = 30;
     end
 
     if Ti_flag ~= 0
@@ -209,16 +203,14 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Ti/(NT*Ts),R,'--o')
+        plot(ax1,Ti/(NT*Ts),R,'--', 'Marker', 'o')
         title(ax1,'Time of up ramp ratio - Correlation')
-        ax1.FontSize = 14;
-        ax1.XColor = 'blue';
+        ax1.FontSize = 30;
 
         ax2 = nexttile;
-        plot(ax2,Ti/(NT*Ts),SIRdB,'--o')
+        plot(ax2,Ti/(NT*Ts),SIRdB,'--', 'Marker', 'o')
         title(ax2,'Time of up ramp ratio - SIR')
-        ax2.FontSize = 14;
-        ax2.XColor = 'blue';
+        ax2.FontSize = 30;
     end
 
     if Tswi_flag ~= 0
@@ -226,16 +218,14 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,Tswi,R,'--o')
-        title(ax1,'Time beetween foolowing ramps - Correlation')
-        ax1.FontSize = 14;
-        ax1.XColor = 'blue';
+        plot(ax1,(Tswi-Ti)/((NTsw-NT)*Ts),R,'--', 'Marker', 'o')
+        title(ax1,'\DeltaT ratio - Correlation')
+        ax1.FontSize = 30;
 
         ax2 = nexttile;
-        plot(ax2,Tswi,SIRdB,'--o')
-        title(ax2,'Time beetween foolowing ramps - SIR')
-        ax2.FontSize = 14;
-        ax2.XColor = 'blue';
+        plot(ax2,(Tswi-Ti)/((NTsw-NT)*Ts),SIRdB,'--', 'Marker', 'o')
+        title(ax2,'\DeltaT ratio - SIR')
+        ax2.FontSize = 30;
     end
 
     if offset_flag ~= 0
@@ -243,23 +233,21 @@ if plotter_flag ~= 0
         tiledlayout(2,1)
 
         ax1 = nexttile;
-        plot(ax1,offset,R,'--o')
+        plot(ax1,offset,R,'--', 'Marker', 'o')
         title(ax1,'Offset - Correlation')
-        ax1.FontSize = 14;
-        ax1.XColor = 'blue';
+        ax1.FontSize = 30;
 
         ax2 = nexttile;
-        plot(ax2,offset,SIRdB,'--o')
+        plot(ax2,offset,SIRdB,'--', 'Marker', 'o')
         title(ax2,'Offset - SIR')
-        ax2.FontSize = 14;
-        ax2.XColor = 'blue';
+        ax2.FontSize = 30;
     end
 
     figure
-    plot(R(ceil(end/2):end),SIRdB(ceil(end/2):end),'--o')
+    plot(R(ceil(end/2):end),SIRdB(ceil(end/2):end),'--', 'Marker', 'o')
     title('Correlation - SIR')
-    p.FontSize = 14;
-    p.XColor = 'blue';
+    fontsize(30,"points")
+    % p.FontSize = 30;
 end
 
 
