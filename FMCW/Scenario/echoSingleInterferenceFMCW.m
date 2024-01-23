@@ -11,9 +11,14 @@ mi = Bi/(NTi*Ts);
 
 t = (0:Ts:(Mi*NTswi*Ts-Ts))';
 t_up = (0:Ts:((NTi-1)*Ts))';
-R = d + v*t;
-L = sqrt(10.^(-fspl(2*abs(R),lambda_ci)/20)); % Free space path loss of the echo
+d_2d = [d(1) + v(1)*t , d(2) + v(2)*t];
+D = sqrt(d_2d(:,1).^2 + d_2d(:,2).^2);
+V = v(1)*(d_2d(:,1)./D) + v(2)*(d_2d(:,2)./D);
+% L = (sqrt(10.^(-fspl(D,lambda_ci)/20)))';
+L = sqrt((lambda_ci./(4*pi*D)).^2)';
+D = reshape(D,NTswi,Mi);
 L = reshape(L,NTswi,Mi);
+
 
 % disp('x')
 x = zeros(NTswi,Mi);
@@ -23,30 +28,31 @@ for l = 1:Mi
 end
 x = reshape(x,NTswi*Mi,1);
 a = sqrt((Pt/(sum(x.*conj(x),"all"))));
+x = a*x;
 
 % figure
 % spectrogram(x(1:NTsw*3),100,80,1024,fs,'yaxis')
-
-y_prefilter = zeros(NTswi,Mi);
-for l = 1:Mi
-    y_prefilter(1:NTi,l) = L(1:NTi,l).*exp(1i*2*pi*(- fci*d/c - fci*v*(l-1)*NTswi*Ts/c + (fci - mi*d/c - fci*v/c - mi*v*(l-1)*NTswi*Ts/c)*t_up + (mi/2 - mi*v/c)*(t_up.^2)))/sqrt(2);
-    y_prefilter(NTi+1:NTswi,l) = zeros(NTswi-NTi,1);
-end
-y_prefilter = a*y_prefilter;
+% 
+% y_prefilter = zeros(NTswi,Mi);
+% for l = 1:Mi
+%     y_prefilter(1:NTi,l) = L(1:NTi,l).*exp(1i*2*pi*(- fci*D(1:NTi,l)/c - fci*V(1)*(l-1)*NTswi*Ts/c + (fci - mi*D(1:NTi,l)/c - fci*V(1)/c - mi*V(1)*(l-1)*NTswi*Ts/c).*t_up + (mi/2 - mi*V(1)/c)*(t_up.^2)))/sqrt(2);
+%     y_prefilter(NTi+1:NTswi,l) = zeros(NTswi-NTi,1);
+% end
+% y_prefilter = a*y_prefilter;
 
 % y_prefilter = a*y_prefilter;
 % SNI_prefilter_db = 10*log10(Pt/(sum(y_prefilter.*conj(y_prefilter),"all")));
 % disp(SNI_prefilter_db)
 
 y_filtered = zeros(NTswi,Mi);
-if ((fci - mi*d/c - fci*v/c - mi*v*(Mi-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(end)))>=fc || (fci - mi*d/c - fci*v/c)<=fc+B
+if ((fci - mi*D(1,1)/c - fci*V(1)/c - mi*V(1)*(Mi-1)*NTswi*Ts/c) + 2*(mi/2 - mi*V(1)/c)*(t_up(end)))>=fc || (fci - mi*D(1,1)/c - fci*V(1)/c)<=fc+B
     for l = 1:Mi
-        if ((fci - mi*d/c - fci*v/c - mi*v*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(end)))>=fc || ((fci - mi*d/c - fci*v/c - mi*v*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(1)))<=fc+B
+        if ((fci - mi*D(1,1)/c - fci*V(1)/c - mi*V(1)*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*V(1)/c)*(t_up(end)))>=fc || ((fci - mi*D(1,1)/c - fci*V(1)/c - mi*v*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(1)))<=fc+B
             for k = 1:NTi
-                if ((fci - mi*d/c - fci*v/c - mi*v*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(k)))<fc || ((fci - mi*d/c - fci*v/c - mi*v*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*v/c)*(t_up(k)))>fc+B
+                if ((fci - mi*D(1,1)/c - fci*V(1)/c - mi*V(1)*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*V(1)/c)*(t_up(k)))<fc || ((fci - mi*D(1,1)/c - fci*V(1)/c - mi*V(1)*(l-1)*NTswi*Ts/c) + 2*(mi/2 - mi*V(1)/c)*(t_up(k)))>fc+B
                     y_filtered(k,l) = 0;
                 else
-                    y_filtered(k,l) = L(k,l).*exp(1i*2*pi*(- fci*d/c - fci*v*(l-1)*NTswi*Ts/c + (fci - mi*d/c - fci*v/c - mi*v*(l-1)*NTswi*Ts/c)*t_up(k) + (mi/2 - mi*v/c)*(t_up(k)^2)))/sqrt(2);
+                    y_filtered(k,l) = L(k,l).*exp(1i*2*pi*(- fci*D(1,1)/c - fci*V(1)*(l-1)*NTswi*Ts/c + (fci - mi*D(1,1)/c - fci*V(1)/c - mi*V(1)*(l-1)*NTswi*Ts/c)*t_up(k) + (mi/2 - mi*V(1)/c)*(t_up(k)^2)))/sqrt(2);
                 end
             end
         end

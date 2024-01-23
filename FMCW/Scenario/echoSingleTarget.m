@@ -11,7 +11,8 @@ t_up = (0:Ts:((NT-1)*Ts))';
 d_2d = [d(1) + v(1)*t , d(2) + v(2)*t];
 D = sqrt(d_2d(:,1).^2 + d_2d(:,2).^2);
 V = v(1)*(d_2d(:,1)./D) + v(2)*(d_2d(:,2)./D);
-L = (sqrt(10.^(-fspl(2*D,lambda_c)/20)))';
+%L = (sqrt((10.^(-fspl(D,lambda_c)/20)).^2))';
+L = sqrt((lambda_c./(4*pi*D)).^4)';
 D = reshape(D,NTsw,M);
 L = reshape(L,NTsw,M);
 
@@ -22,10 +23,11 @@ for l = 1:M
 end
 x = reshape(x,NTsw*M,1);
 a = sqrt((Pt/(sum(x.*conj(x),"all"))));
+x = a*x;
 
 y = zeros(NT,M); % Beat signal simulation
 for l = 1:M
-    y(:,l) = L(1:NT,l).*exp(1i*2*pi*(2*fc*D(1:NT,l)/c + 2*fc*l*NTsw*Ts*V(1)/c + (2*fc*V(1)/c + 2*m*D(1:NT,l)/c + 2*m*l*NTsw*Ts*V(1)/c)*t_up + (2*m*V(1)/c)*(t_up.^2)));
+    y(:,l) = L(1:NT,l).*exp(1i*2*pi*(2*fc*D(1,1)/c + 2*fc*l*NTsw*Ts*V(1)/c + (2*fc*V(1)/c + 2*m*D(1,1)/c + 2*m*l*NTsw*Ts*V(1)/c).*t_up + (2*m*V(1)/c)*(t_up.^2)));
 end
 y = a*y;
 end
