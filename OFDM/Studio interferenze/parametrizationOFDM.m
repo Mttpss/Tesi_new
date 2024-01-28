@@ -47,7 +47,7 @@ delta_f = c/(2*du_id); % Subcarrier spacing [Hz]
 du = du_id;
 Nc = 2^(nextpow2(c/(2*delta_d_id*delta_f))); % Number of subcarriers
 B = delta_f*Nc; % OFDM signal's band [Hz]
-T_s = 1/B; % Sample frequency
+T_s = 1/(2*B); % Sample frequency
 T = 1/delta_f; % Single OFDM symbol duration
 delta_d = c/(2*Nc*delta_f); % Effective range resolution
 if (di_id == du_id)
