@@ -9,22 +9,23 @@ Ti = 1/delta_fi;
 NTi = floor(Ti/Ts);
 Ntot = (NTcpi + NTi + NT0i);
 Ttot = Ntot*Ts;
-t = (0:Ts:Ttot);
+t = (0:Ts:Ttot-Ts);
+t = reshape(t,Nc,NTcpi+NTi+NT0i);
 R = d + v*t;
-L = sqrt(10.^(-fspl(2*abs(R),lambda_ci)/20)); % Free space path loss of the echo
+R = reshape(R,Nc,NTcpi+NTi+NT0i);
+L = sqrt(10.^(-fspl(abs(R),lambda_ci)/20)); % Free space path loss of the echo
 L = reshape(L,Ntot,Nofdm);
 
-% disp('x')
-x = zeros(NTswi,Mi);
-
-fni = (0:Nci)*delta_fi + fci;
-x = zeros(Nc,(NTi+NT0i));
+fni = (0:Nci-1)*delta_fi;
+x_line = zeros(Nc,NTcpi+NTi+NT0i);
 
 for u = 1:Nofdm
     for n = 1:Nc
-        
+        x_line(n,NTcpi+1:NTcpi+NTi) = si(n)*exp(1i*2*pi*fni*t(n,NTcpi+1:NTi));
     end
 end
+x = sum(x_line);
+x = x.*exp(1i*2*pi*fci*t);
 
 if offset < 0 
     x = [x; zeros(abs(offset),1)];
@@ -42,7 +43,19 @@ end
 % figure
 % spectrogram(x(1:NTsw*3),100,80,1024,fs,'yaxis')
 
-y_prefilter = zeros(NTswi,Mi);
+y_line = zeros(Nc,NTcpi+NTi+NT0i);
+
+for n = 1:dim(fni)
+    if fni(n) + fci + fni(n)*vi/c <= fc + B || fni(n) + fci + fni(n)*vi/c >= fc  
+        y_line(n,NTcpi+1:NTcpi+NTi) = x_line(n,NTcpi+1:NTcpi+NTi).*exp(1i*2*pi*fni*(R(n,NTcpi+1:NTcpi+NTi)/c));
+        y_line(n,1:NTcpi) = x_line(n,1:NTcpi).*exp(1i*2*pi*fni*(R(n,NTcpi+1:NTi)/c));
+    end
+end
+y = sum(y_line);
+
+y = y.*exp(1i*2*pi*fci*(t+R/c));
+
+
 for l = 1:Mi
     y_prefilter(1:NTi,l) = L(1:NTi,l).*exp(1i*2*pi*(- fci*d/c - fci*v*(l-1)*NTswi*Ts/c + (fci - mi*d/c - fci*v/c - mi*v*(l-1)*NTswi*Ts/c)*t_up + (mi/2 - mi*v/c)*(t_up.^2)))/sqrt(2);
     y_prefilter(NTi+1:NTswi,l) = zeros(NTswi-NTi,1);
